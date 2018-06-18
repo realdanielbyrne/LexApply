@@ -1,0 +1,660 @@
+{
+  "metadata": {
+    "schemaVersion": "1.0",
+    "importType": "LEX",
+    "importFormat": "JSON"
+  },
+  "resource": {
+    "name": "CandidateQualifier",
+    "version": "1",
+    "intents": [
+      {
+        "rejectionStatement": {
+          "messages": [
+            {
+              "contentType": "PlainText",
+              "content": "No problem.  You may submit your application at any time granted the position is still available."
+            }
+          ]
+        },
+        "name": "ApplyForJob",
+        "version": "17",
+        "fulfillmentActivity": {
+          "type": "CodeHook",
+          "codeHook": {
+            "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+            "messageVersion": "1.0"
+          }
+        },
+        "sampleUtterances": [
+          "I would like to apply for a job",
+          "apply for a job",
+          "apply",
+          "submit my application",
+          "submitmy application for consideration",
+          "I would like to submit my candidacy for the {JobPosting}",
+          "I would like to apply for the {JobPosting} position",
+          "apply for the {JobPosting}",
+          "be considered for a job",
+          "be considered for {JobPosting}",
+          "apply for {JobPosting}",
+          "submit application",
+          "apply to {JobPosting}",
+          "I would like to apply for the {JobPosting} job",
+          "Hi",
+          "Hello",
+          "submit an application",
+          "submit an application for employment"
+        ],
+        "slots": [
+          {
+            "name": "AvailableForWork",
+            "slotConstraint": "Optional",
+            "slotType": "AMAZON.DATE",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "When are you available to start work?"
+                },
+                {
+                  "contentType": "PlainText",
+                  "content": "When is the earliest you could start?"
+                }
+              ],
+              "maxAttempts": 2,
+              "responseCard": "{\"version\":1,\"contentType\":\"application/vnd.amazonaws.card.generic\"}"
+            },
+            "priority": 5,
+            "sampleUtterances": []
+          },
+          {
+            "name": "FirstName",
+            "slotConstraint": "Required",
+            "slotType": "AMAZON.US_FIRST_NAME",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "No problem. I am here to help you with that, but first can you tell me your name?"
+                },
+                {
+                  "contentType": "PlainText",
+                  "content": "Sure I can help you with that. Can I have your first name please?"
+                }
+              ],
+              "maxAttempts": 2,
+              "responseCard": "{\"version\":1,\"contentType\":\"application/vnd.amazonaws.card.generic\"}"
+            },
+            "priority": 1,
+            "sampleUtterances": []
+          },
+          {
+            "name": "IsEligible",
+            "slotConstraint": "Required",
+            "slotType": "Eligibility",
+            "slotTypeVersion": "1",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Are you eligible to work in the United States?"
+                }
+              ],
+              "maxAttempts": 2
+            },
+            "priority": 12,
+            "sampleUtterances": []
+          },
+          {
+            "name": "JobPosting",
+            "slotConstraint": "Required",
+            "slotType": "JobPosting",
+            "slotTypeVersion": "2",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Which open position are you applying for?"
+                }
+              ],
+              "maxAttempts": 2,
+              "responseCard": "{\"version\":1,\"contentType\":\"application/vnd.amazonaws.card.generic\",\"genericAttachments\":[{\"subTitle\":\"Which open position would you like to apply to?\",\"title\":\"Which Job Posting?\",\"buttons\":[{\"text\":\"Development Director\",\"value\":\"Development Director\"},{\"text\":\"Senior .Net Developer\",\"value\":\"Senior .Net Programmer\"},{\"text\":\"Vice President of IT\",\"value\":\"Vice President of IT\"}]}]}"
+            },
+            "priority": 4,
+            "sampleUtterances": []
+          },
+          {
+            "name": "ManagementSkill",
+            "slotConstraint": "Optional",
+            "slotType": "ManagementSkills",
+            "slotTypeVersion": "2",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "What would you say is your best management skill relative to this position?"
+                }
+              ],
+              "maxAttempts": 2
+            },
+            "priority": 10,
+            "sampleUtterances": []
+          },
+          {
+            "name": "ManagementSkillTwo",
+            "slotConstraint": "Optional",
+            "slotType": "ManagementSkills",
+            "slotTypeVersion": "2",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "What would your second best management skill be?"
+                },
+                {
+                  "contentType": "PlainText",
+                  "content": "Can you give me another example of a key management skill you posses?"
+                }
+              ],
+              "maxAttempts": 2,
+              "responseCard": "{\"version\":1,\"contentType\":\"application/vnd.amazonaws.card.generic\",\"genericAttachments\":[]}"
+            },
+            "priority": 11,
+            "sampleUtterances": []
+          },
+          {
+            "name": "Phone",
+            "slotConstraint": "Required",
+            "slotType": "AMAZON.PhoneNumber",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Please enter your preferred contact number {FirstName}."
+                },
+                {
+                  "contentType": "PlainText",
+                  "content": "What is your phone number {FirstName}?"
+                }
+              ],
+              "maxAttempts": 2,
+              "responseCard": "{\"version\":1,\"contentType\":\"application/vnd.amazonaws.card.generic\"}"
+            },
+            "priority": 2,
+            "sampleUtterances": []
+          },
+          {
+            "name": "ProgrammingSkill",
+            "slotConstraint": "Optional",
+            "slotType": "ProgrammingSkills",
+            "slotTypeVersion": "1",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "What is a particular programming skill that you have relevant to this position?"
+                }
+              ],
+              "maxAttempts": 2
+            },
+            "priority": 7,
+            "sampleUtterances": []
+          },
+          {
+            "name": "ProgrammingSkillTwo",
+            "slotConstraint": "Optional",
+            "slotType": "ProgrammingSkills",
+            "slotTypeVersion": "1",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Can you give me a another relevant programming skill? "
+                }
+              ],
+              "maxAttempts": 1,
+              "responseCard": "{\"version\":1,\"contentType\":\"application/vnd.amazonaws.card.generic\",\"genericAttachments\":[]}"
+            },
+            "priority": 8,
+            "sampleUtterances": []
+          },
+          {
+            "name": "ProvideManagementSkills",
+            "slotConstraint": "Required",
+            "slotType": "ProvideSkill",
+            "slotTypeVersion": "1",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Would you like to tell me about your management skills?"
+                }
+              ],
+              "maxAttempts": 2
+            },
+            "priority": 9,
+            "sampleUtterances": []
+          },
+          {
+            "name": "ProvideProgrammingSkills",
+            "slotConstraint": "Required",
+            "slotType": "ProvideSkill",
+            "slotTypeVersion": "1",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Would you like to provide me a short list of your programing skills?"
+                }
+              ],
+              "maxAttempts": 2
+            },
+            "priority": 6,
+            "sampleUtterances": []
+          }
+        ],
+        "confirmationPrompt": {
+          "messages": [
+            {
+              "contentType": "PlainText",
+              "content": "Thank you {FirstName} for that information.  Would you like to continue with the submission?"
+            },
+            {
+              "contentType": "PlainText",
+              "content": "That was fun. Wasn't it? Would you like to go ahead and submit this information for consideration?"
+            },
+            {
+              "contentType": "PlainText",
+              "content": "Awesome! Would you like to continue with your submission?"
+            }
+          ],
+          "maxAttempts": 3
+        },
+        "dialogCodeHook": {
+          "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+          "messageVersion": "1.0"
+        }
+      },
+      {
+        "name": "CheckStatus",
+        "version": "4",
+        "fulfillmentActivity": {
+          "type": "CodeHook",
+          "codeHook": {
+            "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+            "messageVersion": "1.0"
+          }
+        },
+        "sampleUtterances": [
+          "Check status",
+          "I would like to check the status of my application"
+        ],
+        "slots": [
+          {
+            "name": "FirstName",
+            "slotConstraint": "Required",
+            "slotType": "AMAZON.US_FIRST_NAME",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Could you please provide me with you first name?"
+                }
+              ],
+              "maxAttempts": 2
+            },
+            "priority": 1,
+            "sampleUtterances": []
+          },
+          {
+            "name": "JobPosting",
+            "slotConstraint": "Optional",
+            "slotType": "JobPosting",
+            "slotTypeVersion": "2",
+            "valueElicitationPrompt": {
+              "messages": [
+                {
+                  "contentType": "PlainText",
+                  "content": "Which open position are you checking the status of?"
+                }
+              ],
+              "maxAttempts": 2
+            },
+            "priority": 2,
+            "sampleUtterances": []
+          }
+        ],
+        "dialogCodeHook": {
+          "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+          "messageVersion": "1.0"
+        }
+      }
+    ],
+    "slotTypes": [
+      {
+        "name": "Eligibility",
+        "version": "1",
+        "enumerationValues": [
+          {
+            "value": "NotElgible",
+            "synonyms": []
+          },
+          {
+            "value": "Eligible",
+            "synonyms": []
+          }
+        ],
+        "valueSelectionStrategy": "ORIGINAL_VALUE"
+      },
+      {
+        "description": "Job Posting Listing",
+        "name": "JobPosting",
+        "version": "2",
+        "enumerationValues": [
+          {
+            "value": "Development Director",
+            "synonyms": [
+              "Director",
+              "Development Director",
+              "IT Director"
+            ]
+          },
+          {
+            "value": "Senior .Net Programmer",
+            "synonyms": [
+              "Developer",
+              "Programer"
+            ]
+          },
+          {
+            "value": "Vice President of IT",
+            "synonyms": [
+              "vp",
+              "it Vice President"
+            ]
+          }
+        ],
+        "valueSelectionStrategy": "ORIGINAL_VALUE"
+      },
+      {
+        "name": "ProvideSkill",
+        "version": "1",
+        "enumerationValues": [
+          {
+            "value": "no",
+            "synonyms": []
+          },
+          {
+            "value": "nah",
+            "synonyms": []
+          },
+          {
+            "value": "yep",
+            "synonyms": []
+          },
+          {
+            "value": "nope",
+            "synonyms": []
+          },
+          {
+            "value": "yes",
+            "synonyms": []
+          }
+        ],
+        "valueSelectionStrategy": "ORIGINAL_VALUE"
+      },
+      {
+        "description": "A Candidate's Programming Skills",
+        "name": "ProgrammingSkills",
+        "version": "1",
+        "enumerationValues": [
+          {
+            "value": "c++",
+            "synonyms": []
+          },
+          {
+            "value": "obj-c",
+            "synonyms": []
+          },
+          {
+            "value": "Programming",
+            "synonyms": []
+          },
+          {
+            "value": "erlang",
+            "synonyms": []
+          },
+          {
+            "value": "webapi",
+            "synonyms": []
+          },
+          {
+            "value": "cloud",
+            "synonyms": []
+          },
+          {
+            "value": "unity",
+            "synonyms": []
+          },
+          {
+            "value": "lambda",
+            "synonyms": []
+          },
+          {
+            "value": "java",
+            "synonyms": []
+          },
+          {
+            "value": "fortran",
+            "synonyms": []
+          },
+          {
+            "value": "google cloud",
+            "synonyms": []
+          },
+          {
+            "value": "asp.net",
+            "synonyms": []
+          },
+          {
+            "value": "paas",
+            "synonyms": []
+          },
+          {
+            "value": "mvc",
+            "synonyms": []
+          },
+          {
+            "value": "c/c++",
+            "synonyms": []
+          },
+          {
+            "value": "azure",
+            "synonyms": []
+          },
+          {
+            "value": "swift",
+            "synonyms": []
+          },
+          {
+            "value": "c#",
+            "synonyms": []
+          },
+          {
+            "value": "python",
+            "synonyms": []
+          },
+          {
+            "value": "objective-c",
+            "synonyms": []
+          },
+          {
+            "value": "c",
+            "synonyms": []
+          },
+          {
+            "value": "business",
+            "synonyms": []
+          },
+          {
+            "value": "xamarin",
+            "synonyms": []
+          },
+          {
+            "value": "go",
+            "synonyms": []
+          },
+          {
+            "value": "javascript",
+            "synonyms": []
+          },
+          {
+            "value": "amazon",
+            "synonyms": []
+          },
+          {
+            "value": "saas",
+            "synonyms": []
+          },
+          {
+            "value": ".net",
+            "synonyms": []
+          },
+          {
+            "value": "iaas",
+            "synonyms": []
+          },
+          {
+            "value": "aws",
+            "synonyms": []
+          }
+        ],
+        "valueSelectionStrategy": "ORIGINAL_VALUE"
+      },
+      {
+        "description": "Management Skills",
+        "name": "ManagementSkills",
+        "version": "2",
+        "enumerationValues": [
+          {
+            "value": "resource management"
+          },
+          {
+            "value": "Experience with Agile/Scrum"
+          },
+          {
+            "value": "Thought leadership"
+          },
+          {
+            "value": "IT management experience"
+          },
+          {
+            "value": "office"
+          },
+          {
+            "value": "Masters in business"
+          },
+          {
+            "value": "sales"
+          },
+          {
+            "value": "spoken communication"
+          },
+          {
+            "value": "presentation"
+          },
+          {
+            "value": "bs"
+          },
+          {
+            "value": "Agile"
+          },
+          {
+            "value": "Scrum"
+          },
+          {
+            "value": "verbal and written communication skills"
+          },
+          {
+            "value": "communication"
+          },
+          {
+            "value": "Bachelors Degree"
+          },
+          {
+            "value": "project management"
+          },
+          {
+            "value": "presentation skills"
+          },
+          {
+            "value": "staff structuring"
+          },
+          {
+            "value": "negotiations"
+          },
+          {
+            "value": "mba"
+          },
+          {
+            "value": "budgeting"
+          },
+          {
+            "value": "strategic planning"
+          },
+          {
+            "value": "microsoft office"
+          },
+          {
+            "value": "planning"
+          },
+          {
+            "value": "marketing"
+          },
+          {
+            "value": "quality management"
+          },
+          {
+            "value": "written communication"
+          },
+          {
+            "value": "mba degree"
+          },
+          {
+            "value": "Windows system administration"
+          },
+          {
+            "value": "excellent communication"
+          }
+        ],
+        "valueSelectionStrategy": "ORIGINAL_VALUE"
+      }
+    ],
+    "voiceId": "0",
+    "childDirected": false,
+    "locale": "en-US",
+    "idleSessionTTLInSeconds": 300,
+    "clarificationPrompt": {
+      "messages": [
+        {
+          "contentType": "PlainText",
+          "content": "Would you like to apply for a new job?"
+        },
+        {
+          "contentType": "PlainText",
+          "content": "Would you like to submit an application for employment or check on the status of a previous application?"
+        }
+      ],
+      "maxAttempts": 5
+    },
+    "abortStatement": {
+      "messages": [
+        {
+          "contentType": "PlainText",
+          "content": "Sorry, I could not understand. Goodbye."
+        }
+      ]
+    }
+  }
+}
