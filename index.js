@@ -66,10 +66,15 @@ function isValidFirstName(firstName){
 }
 function isValidPhone(phone){
     var p = String(phone);
-    return p.match(/\d/g).length===10;
+    return p.match(/\d/g).length === 10;
 }
+
+function isValidNamedApplication(firstName, lastConfirmedApplication) {
+    return (firstName === lastConfirmedApplication.FirstName);
+}
+
 function isValidJobPosting(posting){
-    const validPostings =["software development director","senior .net programmer","vice president of it"];
+    const validPostings =["development director","senior .net programmer","vice president of it"];
     return (validPostings.indexOf(posting.toLowerCase()) > -1);
 }
 function isValidDate(date) {
@@ -152,47 +157,77 @@ function validateApplication(slots){
     return { isValid: true };
 }
 
-function validateStatus(slots){
+function validateStatus(slots,lastConfirmedApplication){
     const jobPosting = slots.JobPosting;
+    const firstName = slots.FirstName;
 
     if (jobPosting && !isValidJobPosting(jobPosting)){
-        return buildValidationResult(false, 'JobPosting', 'Sorry, I did not see that job posting. Which of the open positions would you like to apply for?');
+        return buildValidationResult(false, 'JobPosting', 'Sorry, I did not see a posting for ' +  jobPosting +'. Which of the open positions would you like to apply for?');
+    }
+
+    if (firstName && !isValidNamedApplication(firstName,lastConfirmedApplication)){
+        return buildValidationResult(false, 'FirstName', 'Sorry, I do not see a submitted application for you.');
     }
     return { isValid: true };
 }
 
 function checkSkills(jobPosting, lastConfirmedApplication){
     const netSkills = ["programming",".net","c#","mvc","webapi","bs","bachelor's degree","ms","javascript","js","python"];
-    const vpSkills = ["management","budgeting","resource management","agile","scrum","mba","presentation skills","negotiations","strategic planning"];
-    const programmingSkill = lastConfirmedApplication.ProgrammingSkill;
-    const programmingSkillTwo = lastConfirmedApplication.ProgrammingSkillTwo;
-    const managementSkill = lastConfirmedApplication.managementSkill;
-    const managementSkillTwo = lastConfirmedApplication.managementSkillTwo;
+    const vpSkills = ["management","budgeting","resource management","agile","scrum","mba","presentation skills","negotiations","strategic planning","project management"];
+    const programmingSkill = lastConfirmedApplication.ProgrammingSkill ? lastConfirmedApplication.ProgrammingSkill : "";
+    const programmingSkillTwo = lastConfirmedApplication.ProgrammingSkillTwo ? lastConfirmedApplication.ProgrammingSkillTwo : "";
+    const managementSkill = lastConfirmedApplication.ManagementSkill ? lastConfirmedApplication.ManagementSkill :"";
+    const managementSkillTwo = lastConfirmedApplication.ManagementSkillTwo ? lastConfirmedApplication.ManagementSkillTwo : "";
     var pskill1= (netSkills.indexOf(programmingSkill.toLowerCase()) > -1);
     var pskill2= (netSkills.indexOf(programmingSkillTwo.toLowerCase()) > -1);
-    var mskill1= (managementSkill.indexOf(vpSkills.toLowerCase()) > -1);
-    var mskill2= (managementSkillTwo.indexOf(vpSkills.toLowerCase()) > -1);
+    var mskill1= (vpSkills.indexOf(managementSkill.toLowerCase()) > -1);
+    var mskill2= (vpSkills.indexOf(managementSkillTwo.toLowerCase()) > -1);
 
-    if (jobPosting == "Software Development Director"){
-        return pskill1 && pskill2 && mskill1 && mskill2;
+    // in a real applicaiton this information would come from a database of open positions
+    var status = false;
+    if (jobPosting == "Development Director"){
+        status = pskill1 && pskill2 && mskill1 && mskill2;
     }
     if (jobPosting == "Senior .Net Programmer"){
-        return pskill1 && pskill2;  
+        status = pskill1 && pskill2;  
     }
     if (jobPosting == "Vice President of IT"){
-        return mskill1 && mskill2;
+        status = mskill1 && mskill2;
     }
-    return false;
+
+    var response = "";
+    if (status) {
+        response = "Congratulations! Your skills meet the basic requirement of this job posting, and you application has been submitted to the hiring manager for further review.";
+    }
+    else {
+        response = "Unfortunately your skills do not meet the basic requirements of this position, and you application has been rejected.";
+        if (jobPosting == "Development Director"){
+            response += "Required at least 2 programming skills from " + netSkills;
+            response += "and at least 2 management skills from the list " + vpSkills;
+        }
+        if (jobPosting == "Senior .Net Programmer"){
+            response += "Required at least 2 programming skills from " + netSkills;
+        }
+        if (jobPosting == "Vice President of IT"){
+            response += "Required at least 2 management skills from " + netSkills;
+        }
+    }
+    return response;
 }
 
 function checkStatus(intentRequest, callback){
     const slots = intentRequest.currentIntent.slots;
     const firstName = slots.FirstName;
     const jobPosting = slots.JobPosting;
+
+    const confirmationStatus = intentRequest.currentIntent.confirmationStatus;
+    const sessionAttributes = intentRequest.sessionAttributes;
+
     const lastConfirmedApplication = sessionAttributes.lastConfirmedApplication ? JSON.parse(sessionAttributes.lastConfirmedApplication) : null;
+    const confirmationContext = sessionAttributes.confirmationContext;
     
     if (intentRequest.invocationSource === 'DialogCodeHook') {
-        const validationResult = validateStatus(slots);
+        const validationResult = validateStatus(slots,lastConfirmedApplication);
         if (!validationResult.isValid) {
             slots[`${validationResult.violatedSlot}`] = null;
             callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name,
@@ -200,15 +235,30 @@ function checkStatus(intentRequest, callback){
             return;
         }
 
-        if ((!firstName && !jobPosting) || confirmationContext === 'AutoPopulate') {
-            if (lastConfirmedApplication) {
-                sessionAttributes.confirmationContext = 'AutoPopulate';
-                callback(confirmIntent(sessionAttributes, intentRequest.currentIntent.name,
-                    {
-                        FirstName: lastConfirmedApplication.FirstName, 
-                        JobPosting: lastConfirmedApplication.JobPosting, 
-                    },
-                    { contentType: 'PlainText', content: `Hello again" ${lastConfirmedApplication.FirstName}! Are you checking on the status of your ${lastConfirmedApplication.JobPosting} application?` }));
+        if (confirmationStatus === 'None') {
+            if ((!firstName && !jobPosting && lastConfirmedApplication) || confirmationContext === 'AutoPopulate') {
+
+                if (lastConfirmedApplication) {
+                    sessionAttributes.confirmationContext = 'AutoPopulate';
+                    sessionAttributes.lastConfirmedApplication = sessionAttributes.lastConfirmedApplication;
+                    callback(confirmIntent(sessionAttributes, intentRequest.currentIntent.name,
+                        {
+                            FirstName: lastConfirmedApplication.FirstName, 
+                            JobPosting: lastConfirmedApplication.JobPosting, 
+                        },
+                        { contentType: 'PlainText', content: `Hello again" ${lastConfirmedApplication.FirstName}! Are you checking on the status of your ${lastConfirmedApplication.JobPosting} application?` }));
+                    return;
+                }
+            }
+            if (!firstName) {
+                sessionAttributes.lastConfirmedApplication = sessionAttributes.lastConfirmedApplication;
+                callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, intentRequest.currentIntent.slots, 'FirstName',
+                { contentType: 'PlainText', content: 'Please provide me with your first name so I can locate your application.' }));
+                return;
+            } else if (!jobPosting) {
+                sessionAttributes.lastConfirmedApplication = sessionAttributes.lastConfirmedApplication;
+                callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, intentRequest.currentIntent.slots, 'JobPosting',
+                { contentType: 'PlainText', content: 'For what job are you checking the status of your application on?' }));
                 return;
             }
         }
@@ -228,30 +278,17 @@ function checkStatus(intentRequest, callback){
                     return;
                 }
             }
-
-            sessionAttributes.lastConfirmedApplication = lastConfirmedApplication;
-            callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
-            return;
         }
-
-        sessionAttributes.lastConfirmedApplication = lastConfirmedApplication;
-        callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
     }
 
+    var response = checkSkills(jobPosting, lastConfirmedApplication);
 
-    var status = checkSkills(jobPosting, lastConfirmedApplication);
-    var response = "";
-    if (status) {
-        response = "Congratulations! Your skills meet the basic requirement of this job posting, and you application has been submitted to the hiring manager for further review.";
-    }
-    else {
-        response = "Unfortunately your skills do not meet the basic requirements of this position, and you application has been rejected.";
-    }
-
-    sessionAttributes.lastConfirmedApplication = application;
     callback(close(sessionAttributes, 'Fulfilled',
     { contentType: 'PlainText', content: response }));
 }
+
+
+
 
 /**
  * Performs dialog management and fulfillment for job applicants.
@@ -277,6 +314,8 @@ function applyForJob(intentRequest, callback) {
 
     const confirmationStatus = intentRequest.currentIntent.confirmationStatus;
     const sessionAttributes = intentRequest.sessionAttributes;
+    sessionAttributes.firstName = intentRequest.sessionAttributes.firstName;
+    sessionAttributes.jobPosting = intentRequest.sessionAttributes.jobPosting;
 
     const lastConfirmedApplication = sessionAttributes.lastConfirmedApplication ? JSON.parse(sessionAttributes.lastConfirmedApplication) : null;
     const confirmationContext = sessionAttributes.confirmationContext;
@@ -305,18 +344,23 @@ function applyForJob(intentRequest, callback) {
         if (!validationResult.isValid) {
             console.log(`validation error=${validationResult.violatedSlot}`);
             slots[`${validationResult.violatedSlot}`] = null;
+
+            sessionAttributes.firstName = slots.firstName;
+            sessionAttributes.jobPosting = slots.jobPosting;
+
             callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name,
             slots, validationResult.violatedSlot, validationResult.message));
             return;
         }
-
-        
 
         // Determine if the intent (and current slot settings) has been denied.  The messaging will be different if the user is denying a reservation he initiated or an auto-populated suggestion.
         if (confirmationStatus === 'Denied') {
             // Clear out auto-population flag for subsequent turns.
             delete sessionAttributes.confirmationContext;
             delete sessionAttributes.currentApplication; 
+            delete sessionAttributes.firstName;
+            delete sessionAttributes.jobPosting;
+
             const clearedSlots = String(JSON.stringify({ 
                 FirstName: null, 
                 Phone: null, 
@@ -440,6 +484,9 @@ function applyForJob(intentRequest, callback) {
             }
 
             sessionAttributes.currentApplication = application;
+            sessionAttributes.firstName = slots.firstName;
+            sessionAttributes.jobPosting = slots.jobPosting;
+
             // Otherwise, let native DM rules determine how to elicit for slots and/or drive confirmation.
             callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
             return;
