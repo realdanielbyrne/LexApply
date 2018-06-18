@@ -200,9 +200,16 @@ function checkStatus(intentRequest, callback){
         return;
     }
 
-    checkSkills(jobPosting,lastConfirmedApplication);
+    var status = checkSkills(jobPosting, lastConfirmedApplication);
+    var response = "";
+    if (status) {
+        response = "Congratulations! Your skills meet the basic requirement of this job posting, and you application has been submitted to the hiring manager for further review.";
+    }
+    else {
+        response = "Unfortunately your skills do not meet the basic requirements of this position, and you application has been rejected.";
+    }
     callback(close(sessionAttributes, 'Fulfilled',
-    { contentType: 'PlainText', content: 'Thanks, I have submitted your application. If you would like to check on the status of your application ask, "Check status."' }));
+    { contentType: 'PlainText', content: response }));
 
 }
 
