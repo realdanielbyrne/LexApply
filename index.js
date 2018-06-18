@@ -187,16 +187,57 @@ function checkSkills(jobPosting, lastConfirmedApplication){
 
 function checkStatus(intentRequest, callback){
     const slots = intentRequest.currentIntent.slots;
+    const firstName = slots.FirstName;
     const jobPosting = slots.JobPosting;
     const lastConfirmedApplication = sessionAttributes.lastConfirmedApplication ? JSON.parse(sessionAttributes.lastConfirmedApplication) : null;
     
-    const validationResult = validateStatus(slots);
-    if (!validationResult.isValid) {
-        slots[`${validationResult.violatedSlot}`] = null;
-        callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name,
-        slots, validationResult.violatedSlot, validationResult.message));
-        return;
+    if (intentRequest.invocationSource === 'DialogCodeHook') {
+        const validationResult = validateStatus(slots);
+        if (!validationResult.isValid) {
+            slots[`${validationResult.violatedSlot}`] = null;
+            callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name,
+            slots, validationResult.violatedSlot, validationResult.message));
+            return;
+        }
+
+        if ((!firstName && !jobPosting) || confirmationContext === 'AutoPopulate') {
+            if (lastConfirmedApplication) {
+                sessionAttributes.confirmationContext = 'AutoPopulate';
+                callback(confirmIntent(sessionAttributes, intentRequest.currentIntent.name,
+                    {
+                        FirstName: lastConfirmedApplication.FirstName, 
+                        JobPosting: lastConfirmedApplication.JobPosting, 
+                    },
+                    { contentType: 'PlainText', content: `Hello again" ${lastConfirmedApplication.FirstName}! Are you checking on the status of your ${lastConfirmedApplication.JobPosting} application?` }));
+                return;
+            }
+        }
+
+        // If confirmation has occurred, continue filling any unfilled slot values or pass to fulfillment.
+        if (confirmationStatus === 'Confirmed') {
+            // Remove confirmationContext from sessionAttributes so it does not confuse future requests
+            delete sessionAttributes.confirmationContext;
+            if (confirmationContext === 'AutoPopulate') {
+                if (!firstName) {
+                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, intentRequest.currentIntent.slots, 'FirstName',
+                    { contentType: 'PlainText', content: 'Please provide me with your first name so I can locate your application.' }));
+                    return;
+                } else if (!jobPosting) {
+                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, intentRequest.currentIntent.slots, 'JobPosting',
+                    { contentType: 'PlainText', content: 'For what job are you checking the status of your application on?' }));
+                    return;
+                }
+            }
+
+            sessionAttributes.lastConfirmedApplication = lastConfirmedApplication;
+            callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
+            return;
+        }
+
+        sessionAttributes.lastConfirmedApplication = lastConfirmedApplication;
+        callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
     }
+
 
     var status = checkSkills(jobPosting, lastConfirmedApplication);
     var response = "";
@@ -206,9 +247,10 @@ function checkStatus(intentRequest, callback){
     else {
         response = "Unfortunately your skills do not meet the basic requirements of this position, and you application has been rejected.";
     }
+
+    sessionAttributes.lastConfirmedApplication = application;
     callback(close(sessionAttributes, 'Fulfilled',
     { contentType: 'PlainText', content: response }));
-
 }
 
 /**
@@ -330,7 +372,8 @@ function applyForJob(intentRequest, callback) {
                 ManagementSkill:managementSkill,
                 ManagementSkillTwo:managementSkillTwo,
                 IsEligible:isEligible
-             };
+            };
+
             if (provideProgrammingSkills && provideProgrammingSkills =="yes"){
                 if(!programmingSkill){
                     callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
@@ -345,6 +388,7 @@ function applyForJob(intentRequest, callback) {
                     return;
                 }
             }
+
             if (provideManagementSkills && provideManagementSkills == "yes"){
                 if(!managementSkill){
                     callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
@@ -355,10 +399,11 @@ function applyForJob(intentRequest, callback) {
                 if(!managementSkillTwo && managementSkill){
                     callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
                         'ManagementSkillTwo',
-                    { contentType: 'PlainText', content: 'Please enter anotther salient management skill.' }));
+                    { contentType: 'PlainText', content: 'Please enter another salient management skill.' }));
                     return;
                 }
             }
+
             sessionAttributes.currentApplication = application;
             // Otherwise, let native DM rules determine how to elicit for slots and/or drive confirmation.
             callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
@@ -369,13 +414,6 @@ function applyForJob(intentRequest, callback) {
         if (confirmationStatus === 'Confirmed') {
             // Remove confirmationContext from sessionAttributes so it does not confuse future requests
             delete sessionAttributes.confirmationContext;
-            if (confirmationContext === 'AutoPopulate') {
-                if (!phone) {
-                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, intentRequest.currentIntent.slots, 'Phone',
-                    { contentType: 'PlainText', content: 'What is your phone number?' }));
-                    return;
-                }
-            }
             callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
             return;
         }
