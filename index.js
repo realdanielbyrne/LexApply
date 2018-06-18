@@ -298,6 +298,8 @@ function applyForJob(intentRequest, callback) {
     sessionAttributes.currentApplication = application;
 
     if (intentRequest.invocationSource === 'DialogCodeHook') {
+     
+
         // Validate any slots which have been specified.  If any are invalid, re-elicit for their value
         const validationResult = validateApplication(intentRequest.currentIntent.slots);
         if (!validationResult.isValid) {
@@ -307,6 +309,8 @@ function applyForJob(intentRequest, callback) {
             slots, validationResult.violatedSlot, validationResult.message));
             return;
         }
+
+        
 
         // Determine if the intent (and current slot settings) has been denied.  The messaging will be different if the user is denying a reservation he initiated or an auto-populated suggestion.
         if (confirmationStatus === 'Denied') {
@@ -338,6 +342,7 @@ function applyForJob(intentRequest, callback) {
         }
 
         if (confirmationStatus === 'None') {
+            
             // If we are currently auto-populating but have not gotten confirmation, keep requesting for confirmation.
             if ((!firstName && !phone) || confirmationContext === 'AutoPopulate') {
                 if (lastConfirmedApplication) {
@@ -356,7 +361,26 @@ function applyForJob(intentRequest, callback) {
                             ManagementSkillsTwo:null,
                             IsEligible:null
                         },
-                        { contentType: 'PlainText', content: `Is this information still correct, First Name:" ${lastConfirmedApplication.FirstName} and Phone: ${lastConfirmedApplication.Phone}` }));
+                        { contentType: 'PlainText', content: `Is this information still correct, First Name ${lastConfirmedApplication.FirstName} and Phone: ${lastConfirmedApplication.Phone}` }));
+                    return;
+                }
+                if (jobPosting && !firstName){
+                    sessionAttributes.confirmationContext = 'AutoPopulate';
+                    confirmIntent(sessionAttributes, intentRequest.currentIntent.name,
+                        {
+                            FirstName: null, 
+                            Phone: null, 
+                            JobPosting: jobPosting, 
+                            AvailableForWork: null,
+                            ProvideProgrammingSkills:null,
+                            ProgrammingSkills:null,
+                            ProgrammingSkillsTwo:null,
+                            ProvideManagementSkills:null,
+                            ManagementSkills:null,
+                            ManagementSkillsTwo:null,
+                            IsEligible:null
+                        },
+                        { contentType: 'PlainText', content: `You would like to apply for the ${jobPosting} position, correct?` });
                     return;
                 }
             }
@@ -373,6 +397,17 @@ function applyForJob(intentRequest, callback) {
                 ManagementSkillTwo:managementSkillTwo,
                 IsEligible:isEligible
             };
+
+            if (!firstName && !phone) {
+                var input = intentRequest.inputTranscript.toLowerCase();
+                if (input === "hello" || input === "hi") {
+                    
+                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
+                        'FirstName',
+                    { contentType: 'PlainText', content: 'Hello!  My name is Daniel.  I am here to help you with you job search, but please first tell me your first name.' }));
+                    return;
+                }
+            }   
 
             if (provideProgrammingSkills && provideProgrammingSkills =="yes"){
                 if(!programmingSkill){
@@ -414,6 +449,13 @@ function applyForJob(intentRequest, callback) {
         if (confirmationStatus === 'Confirmed') {
             // Remove confirmationContext from sessionAttributes so it does not confuse future requests
             delete sessionAttributes.confirmationContext;
+
+            if (firstName && jobPosting && !phone) {
+                callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, intentRequest.currentIntent.slots, 'Phone',
+                { contentType: 'PlainText', content: 'Sure I can help with that.  Can you please give me you contact phone number?' }));
+                return;
+            }
+
             callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
             return;
         }
