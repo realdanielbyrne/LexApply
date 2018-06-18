@@ -54,9 +54,6 @@ function delegate(sessionAttributes, slots) {
 }
 
 // ---------------- Helper Functions --------------------------------------------------
-
-
-
 function buildValidationResult(isValid, violatedSlot, messageContent) {
     return {
         isValid,
@@ -156,6 +153,7 @@ function validateApplication(slots){
 
 function validateStatus(slots){
     const jobPosting = slots.JobPosting;
+
     if (jobPosting && !isValidJobPosting(jobPosting)){
         return buildValidationResult(false, 'JobPosting', 'Sorry, I did not see that job posting. Which of the open positions would you like to apply for?');
     }
