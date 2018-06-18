@@ -1,0 +1,15 @@
+{
+  "name": "lexapply",
+  "version": "1.0.0",
+  "description": "Amazon Lex Lambda configuration and validation for job applicants",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "author": "",
+  "license": "ISC"
+}
