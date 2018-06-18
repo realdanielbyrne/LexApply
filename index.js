@@ -61,22 +61,23 @@ function buildValidationResult(isValid, violatedSlot, messageContent) {
         message: { contentType: 'PlainText', content: messageContent },
     };
 }
-function isValidFullName(fullName){
+function isValidFirstName(firstName){
     return true;
 }
-function isValidPhone(fullName){
-    return fullName.Test("^(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$");
+function isValidPhone(phone){
+    var p = String(phone);
+    return p.match(/\d/g).length===10;
 }
 function isValidJobPosting(posting){
-    const validPostings =["Software Development Director","Senior .Net Programmer","Vice President of IT"];
-    return (validPostings.indexOf(posting.toLowerCase() > -1));
+    const validPostings =["software development director","senior .net programmer","vice president of it"];
+    return (validPostings.indexOf(posting.toLowerCase()) > -1);
 }
 function isValidDate(date) {
     return !(isNaN(Date.parse(date)));
 }
 function isValidYesNo(resp){
     const responses = ['yes','no'];
-    return (responses.indexOf(resp.toLowerCase() > -1));
+    return (responses.indexOf(resp.toLowerCase()) > -1);
 }
 
 function isValidSkill() {
@@ -85,13 +86,13 @@ function isValidSkill() {
 }
 
 function isValidIsEligible(elgibility){
-    const responses=["eligible", "yes", "no", "not eligible", "I am eligible", "I am eligible to work"] 
-    return (responses.indexOf(elgibility.toLowerCase() > -1));
+    const responses=["eligible", "yes", "no", "not eligible", "i am eligible", "i am eligible to work"] 
+    return (responses.indexOf(elgibility.toLowerCase()) > -1);
 }
 
 function validateApplication(slots){
-
-    const fullName = slots.FullName;
+    console.log("validateApplication");
+    const firstName = slots.FirstName;
     const phone = slots.Phone;
     const jobPosting = slots.JobPosting;
     const availableForWork = slots.AvailableForWork;
@@ -103,13 +104,13 @@ function validateApplication(slots){
     const managementSkillTwo = slots.ManagementSkillTwo;
     const isEligible = slots.IsEligible;
 
-    if (fullName && !isValidFullName()){
-        return buildValidationResult(false, 'FullName', 'Sorry I did not understand that name');
+    if (firstName && !isValidFirstName(firstName)){
+        return buildValidationResult(false, 'FirstName', 'Sorry I did not understand that name. Could you please reenter your first name?');
     }
-    if (phone && !isValidPhone()){
-        return buildValidationResult(false, 'Phone', 'I did not understand the phone nmber you entered.  Would you please enter a valid 10 digit phone number?');
+    if (phone && !isValidPhone(phone)){
+        return buildValidationResult(false, 'Phone', 'I did not understand the phone number you entered.  Would you please enter a valid 10 digit phone number?');
     }
-    if (jobPosting && !isValidJobPosting()){
+    if (jobPosting && !isValidJobPosting(jobPosting)){
         return buildValidationResult(false, 'JobPosting', 'Sorry, I did not see that job posting. Which of the open positions would you like to apply for?');
     }
     if (availableForWork){
@@ -145,7 +146,7 @@ function validateApplication(slots){
             return buildValidationResult(false, 'ManagementSkillTwo', 'Sorry I did not understand that. Can you provide me a relevant skill you posses?');        
         }
     }
-    if (isEligible && !isValidIsEligible()){
+    if (isEligible && !isValidIsEligible(isEligible)){
         return buildValidationResult(false, 'IsEligible', "Sorry I didn't recognize that response.  Are you eligible to ork in the US, yes or no?");        
     }  
     return { isValid: true };
@@ -161,17 +162,16 @@ function validateStatus(slots){
 }
 
 function checkSkills(jobPosting, lastConfirmedApplication){
-    const netSkills = ["programming",".net","c#","mvc","webapi","bs","bachelor's degree","ms"];
+    const netSkills = ["programming",".net","c#","mvc","webapi","bs","bachelor's degree","ms","javascript","js","python"];
     const vpSkills = ["management","budgeting","resource management","agile","scrum","mba","presentation skills","negotiations","strategic planning"];
-    const jobPosting = lastConfirmedApplication.JobPosting;
     const programmingSkill = lastConfirmedApplication.ProgrammingSkill;
     const programmingSkillTwo = lastConfirmedApplication.ProgrammingSkillTwo;
     const managementSkill = lastConfirmedApplication.managementSkill;
     const managementSkillTwo = lastConfirmedApplication.managementSkillTwo;
-    var pskill1= (netSkills.indexOf(programmingSkill.toLowerCase() > -1));
-    var pskill2= (netSkills.indexOf(programmingSkillTwo.toLowerCase() > -1));
-    var mskill1= (managementSkill.indexOf(vpSkills.toLowerCase() > -1));
-    var mskill2= (managementSkillTwo.indexOf(vpSkills.toLowerCase() > -1));
+    var pskill1= (netSkills.indexOf(programmingSkill.toLowerCase()) > -1);
+    var pskill2= (netSkills.indexOf(programmingSkillTwo.toLowerCase()) > -1);
+    var mskill1= (managementSkill.indexOf(vpSkills.toLowerCase()) > -1);
+    var mskill2= (managementSkillTwo.indexOf(vpSkills.toLowerCase()) > -1);
 
     if (jobPosting == "Software Development Director"){
         return pskill1 && pskill2 && mskill1 && mskill2;
@@ -215,15 +215,17 @@ function checkStatus(intentRequest, callback){
  * Performs dialog management and fulfillment for job applicants.
  */
 function applyForJob(intentRequest, callback) {
+    console.log("applyForJob Start");
     const slots = intentRequest.currentIntent.slots;
 
-    const fullName = slots.FullName;
+    const firstName = slots.FirstName;
     const phone = slots.Phone;
     const jobPosting = slots.JobPosting;
     const availableForWork = slots.AvailableForWork;
     const provideProgrammingSkills = slots.ProvideProgrammingSkills;
+    console.log(provideProgrammingSkills);
 
-    const programmingSkills = slots.ProgrammingSkill;
+    const programmingSkill = slots.ProgrammingSkill;
     const programmingSkillTwo = slots.ProgrammingSkillTwo;
     const provideManagementSkills = slots.ProvideManagementSkills;
 
@@ -239,12 +241,12 @@ function applyForJob(intentRequest, callback) {
 
     // Load confirmation history and track the current application.
     const application = String(JSON.stringify({ 
-        FullName: fullName, 
+        FirstName: firstName, 
         Phone: phone, 
         JobPosting: jobPosting, 
         AvailableForWork: availableForWork,
         ProvideProgrammingSkills:provideProgrammingSkills,
-        ProgrammingSkill:programmingSkills,
+        ProgrammingSkill:programmingSkill,
         ProgrammingSkillTwo:programmingSkillTwo,
         ProvideManagementSkills:provideManagementSkills,
         ManagementSkill:managementSkill,
@@ -255,7 +257,7 @@ function applyForJob(intentRequest, callback) {
 
     if (intentRequest.invocationSource === 'DialogCodeHook') {
         // Validate any slots which have been specified.  If any are invalid, re-elicit for their value
-        const validationResult = validateApplication(slots);
+        const validationResult = validateApplication(intentRequest.currentIntent.slots);
         if (!validationResult.isValid) {
             console.log(`validation error=${validationResult.violatedSlot}`);
             slots[`${validationResult.violatedSlot}`] = null;
@@ -270,7 +272,7 @@ function applyForJob(intentRequest, callback) {
             delete sessionAttributes.confirmationContext;
             delete sessionAttributes.currentApplication; 
             const clearedSlots = String(JSON.stringify({ 
-                FullName: null, 
+                FirstName: null, 
                 Phone: null, 
                 JobPosting: null, 
                 AvailableForWork: null,
@@ -285,7 +287,7 @@ function applyForJob(intentRequest, callback) {
              if (confirmationContext === 'AutoPopulate') {
                 callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, 
                     clearedSlots, 
-                    'FullName',
+                    'FirstName',
                 { contentType: 'PlainText', content: 'Can I have your name please?' }));
                 return;
             }
@@ -295,12 +297,12 @@ function applyForJob(intentRequest, callback) {
 
         if (confirmationStatus === 'None') {
             // If we are currently auto-populating but have not gotten confirmation, keep requesting for confirmation.
-            if ((!fullName && !phone) || confirmationContext === 'AutoPopulate') {
+            if ((!firstName && !phone) || confirmationContext === 'AutoPopulate') {
                 if (lastConfirmedApplication) {
                     sessionAttributes.confirmationContext = 'AutoPopulate';
                     callback(confirmIntent(sessionAttributes, intentRequest.currentIntent.name,
                         {
-                            FullName: lastConfirmedApplication.FullName, 
+                            FirstName: lastConfirmedApplication.FirstName, 
                             Phone: lastConfirmedApplication.Phone, 
                             JobPosting: null, 
                             AvailableForWork: null,
@@ -312,10 +314,52 @@ function applyForJob(intentRequest, callback) {
                             ManagementSkillsTwo:null,
                             IsEligible:null
                         },
-                        { contentType: 'PlainText', content: `Is this information still correct, FullName:" ${lastConfirmedApplication.FullName} and Phone: ${lastConfirmedApplication.Phone}` }));
+                        { contentType: 'PlainText', content: `Is this information still correct, First Name:" ${lastConfirmedApplication.FirstName} and Phone: ${lastConfirmedApplication.Phone}` }));
                     return;
                 }
             }
+            var populatedSlots = { 
+                FirstName: firstName, 
+                Phone: phone, 
+                JobPosting: jobPosting, 
+                AvailableForWork: availableForWork,
+                ProvideProgrammingSkills:provideProgrammingSkills,
+                ProgrammingSkill:programmingSkill,
+                ProgrammingSkillTwo:programmingSkillTwo,
+                ProvideManagementSkills:provideManagementSkills,
+                ManagementSkill:managementSkill,
+                ManagementSkillTwo:managementSkillTwo,
+                IsEligible:isEligible
+             };
+            if (provideProgrammingSkills && provideProgrammingSkills =="yes"){
+                if(!programmingSkill){
+                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
+                        'ProgrammingSkill',
+                    { contentType: 'PlainText', content: 'Please enter a programming skill relevant to this position.' }));
+                    return;
+                }
+                if(!programmingSkillTwo && programmingSkill){
+                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
+                        'ProgrammingSkillTwo',
+                    { contentType: 'PlainText', content: 'Please enter another programming skill you feel is relevant to this position.' }));
+                    return;
+                }
+            }
+            if (provideManagementSkills && provideManagementSkills == "yes"){
+                if(!managementSkill){
+                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
+                        'ManagementSkill',
+                    { contentType: 'PlainText', content: 'Please enter a management skill relevant to this position.' }));
+                    return;
+                }
+                if(!managementSkillTwo && managementSkill){
+                    callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name, populatedSlots, 
+                        'ManagementSkillTwo',
+                    { contentType: 'PlainText', content: 'Please enter anotther salient management skill.' }));
+                    return;
+                }
+            }
+            sessionAttributes.currentApplication = application;
             // Otherwise, let native DM rules determine how to elicit for slots and/or drive confirmation.
             callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
             return;
@@ -335,9 +379,14 @@ function applyForJob(intentRequest, callback) {
             callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
             return;
         }
+
+        sessionAttributes.currentApplication = application;
+        callback(delegate(sessionAttributes, intentRequest.currentIntent.slots));
+        return;
     }
 
     // In a real application, this would likely involve a call to a backend service.
+    console.log(`submit application.`);
     delete sessionAttributes.currentApplication;
     sessionAttributes.lastConfirmedApplication = application;
     callback(close(sessionAttributes, 'Fulfilled',
