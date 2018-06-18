@@ -259,6 +259,7 @@ function applyForJob(intentRequest, callback) {
         // Validate any slots which have been specified.  If any are invalid, re-elicit for their value
         const validationResult = validateApplication(slots);
         if (!validationResult.isValid) {
+            console.log(`validation error=${validationResult.violatedSlot}`);
             slots[`${validationResult.violatedSlot}`] = null;
             callback(elicitSlot(sessionAttributes, intentRequest.currentIntent.name,
             slots, validationResult.violatedSlot, validationResult.message));
