@@ -1,0 +1,7 @@
+{
+  "lambda": {
+    "role": "lexapply-executor",
+    "name": "lexapply",
+    "region": "us-east-1"
+  }
+}

@@ -18,11 +18,11 @@
           ]
         },
         "name": "ApplyForJob",
-        "version": "17",
+        "version": "3",
         "fulfillmentActivity": {
           "type": "CodeHook",
           "codeHook": {
-            "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+            "uri": "arn:aws:lambda:us-east-1:854239521793:function:lexapply",
             "messageVersion": "1.0"
           }
         },
@@ -110,7 +110,7 @@
             "name": "JobPosting",
             "slotConstraint": "Required",
             "slotType": "JobPosting",
-            "slotTypeVersion": "2",
+            "slotTypeVersion": "1",
             "valueElicitationPrompt": {
               "messages": [
                 {
@@ -128,7 +128,7 @@
             "name": "ManagementSkill",
             "slotConstraint": "Optional",
             "slotType": "ManagementSkills",
-            "slotTypeVersion": "2",
+            "slotTypeVersion": "1",
             "valueElicitationPrompt": {
               "messages": [
                 {
@@ -145,7 +145,7 @@
             "name": "ManagementSkillTwo",
             "slotConstraint": "Optional",
             "slotType": "ManagementSkills",
-            "slotTypeVersion": "2",
+            "slotTypeVersion": "1",
             "valueElicitationPrompt": {
               "messages": [
                 {
@@ -258,7 +258,7 @@
           "messages": [
             {
               "contentType": "PlainText",
-              "content": "Thank you {FirstName} for that information.  Would you like to continue with the submission?"
+              "content": "Thank you {FirstName} for that information.  I have you applying for the {JobPosting} position.  You are available to being work on {AvailableForWork}, and your phone number is {Phone}.  Would you like to continue with the submission?"
             },
             {
               "contentType": "PlainText",
@@ -272,17 +272,17 @@
           "maxAttempts": 3
         },
         "dialogCodeHook": {
-          "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+          "uri": "arn:aws:lambda:us-east-1:854239521793:function:lexapply",
           "messageVersion": "1.0"
         }
       },
       {
         "name": "CheckStatus",
-        "version": "4",
+        "version": "2",
         "fulfillmentActivity": {
           "type": "CodeHook",
           "codeHook": {
-            "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+            "uri": "arn:aws:lambda:us-east-1:854239521793:function:lexapply",
             "messageVersion": "1.0"
           }
         },
@@ -311,7 +311,7 @@
             "name": "JobPosting",
             "slotConstraint": "Optional",
             "slotType": "JobPosting",
-            "slotTypeVersion": "2",
+            "slotTypeVersion": "1",
             "valueElicitationPrompt": {
               "messages": [
                 {
@@ -326,7 +326,7 @@
           }
         ],
         "dialogCodeHook": {
-          "uri": "arn:aws:lambda:us-west-2:854239521793:function:lexApply",
+          "uri": "arn:aws:lambda:us-east-1:854239521793:function:lexapply",
           "messageVersion": "1.0"
         }
       }
@@ -350,7 +350,7 @@
       {
         "description": "Job Posting Listing",
         "name": "JobPosting",
-        "version": "2",
+        "version": "1",
         "enumerationValues": [
           {
             "value": "Development Director",
@@ -535,7 +535,7 @@
       {
         "description": "Management Skills",
         "name": "ManagementSkills",
-        "version": "2",
+        "version": "1",
         "enumerationValues": [
           {
             "value": "resource management"
